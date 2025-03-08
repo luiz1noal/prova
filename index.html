@@ -10,10 +10,14 @@
             display: block;
             margin: auto;
         }
+        h1 {
+            color: black;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <h1 style="color: white; text-align: center;">Pontuação: <span id="pontuacao">0</span></h1>
+    <h1>Pontuação: <span id="pontuacao">0</span></h1>
     <canvas id="jogoCanvas" width="480" height="320"></canvas>
     <script>
         class ObjetoDoJogo {
@@ -97,7 +101,7 @@
                     ) {
                         this.dy *= -1;
                         blocos.splice(i, 1); // Remove o bloco
-                        return true; // bloco destruido pela bola
+                        return true; // A bola destruiu um bloco
                     }
                 }
 
@@ -152,7 +156,7 @@
             // Desenha os blocos restantes
             blocos.forEach((bloco) => bloco.desenhar(ctx));
 
-            // Vitoria quando todos os blocos forem destruidos
+            // Se todos os blocos forem destruídos, exibe uma mensagem
             if (blocos.length === 0) {
                 ctx.fillStyle = "white";
                 ctx.font = "20px Arial";
