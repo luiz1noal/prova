@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Breakout Simples</title>
+    <title>Prova</title>
     <style>
         canvas {
             background: black;
@@ -13,9 +13,9 @@
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    <canvas id="jogoCanvas" width="480" height="320"></canvas>
     <script>
-        const canvas = document.getElementById("gameCanvas");
+        const canvas = document.getElementById("jogoCanvas");
         const ctx = canvas.getContext("2d");
 
         let raqueteX = (canvas.width - 80) / 2;
@@ -41,9 +41,18 @@
             if (direita && raqueteX < canvas.width - 80) raqueteX += 5;
             if (esquerda && raqueteX > 0) raqueteX -= 5;
             
+            // Movimenta a bola
+            bolaX += bolaDX;
+            bolaY += bolaDY;
             
+            // Colisão com as paredes
+            if (bolaX < 0 || bolaX > canvas.width) bolaDX *= -1;
+            if (bolaY < 0) bolaDY *= -1;
             
-            // Fim de jogo
+            // Colisão com a raquete
+            if (bolaY > canvas.height - 20 && bolaX > raqueteX && bolaX < raqueteX + 80) bolaDY *= -1;
+            
+            // Reseta o jogo
             if (bolaY > canvas.height) {
                 bolaX = canvas.width / 2;
                 bolaY = canvas.height / 2;
