@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakout Simples</title>
+    <style>
+        canvas {
+            background: black;
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let raqueteX = (canvas.width - 80) / 2;
+        let bolaX = canvas.width / 2;
+        let bolaY = canvas.height / 2;
+        let bolaDX = 3, bolaDY = -3;
+        let direita = false, esquerda = false;
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight") direita = true;
+            if (e.key === "ArrowLeft") esquerda = true;
+        });
+        
+        document.addEventListener("keyup", () => {
+            direita = false;
+            esquerda = false;
+        });
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Movimenta a raquete
+            if (direita && raqueteX < canvas.width - 80) raqueteX += 5;
+            if (esquerda && raqueteX > 0) raqueteX -= 5;
+            
+            
+            
+            // Fim de jogo
+            if (bolaY > canvas.height) {
+                bolaX = canvas.width / 2;
+                bolaY = canvas.height / 2;
+                bolaDX = 3;
+                bolaDY = -3;
+            }
+            
+            // Desenha a raquete
+            ctx.fillStyle = "blue";
+            ctx.fillRect(raqueteX, canvas.height - 10, 80, 10);
+            
+            // Desenha a bola
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(bolaX, bolaY, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            requestAnimationFrame(update);
+        }
+
+        update();
+    </script>
+</body>
+</html>
