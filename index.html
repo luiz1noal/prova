@@ -13,111 +13,157 @@
     </style>
 </head>
 <body>
+    <h1 style="color: white; text-align: center;">Pontuação: <span id="pontuacao">0</span></h1>
     <canvas id="jogoCanvas" width="480" height="320"></canvas>
     <script>
         class ObjetoDoJogo {
-    constructor(x, y, largura, altura, cor) {
-        this.x = x;
-        this.y = y;
-        this.largura = largura;
-        this.altura = altura;
-        this.cor = cor;
-    }
+            constructor(x, y, largura, altura, cor) {
+                this.x = x;
+                this.y = y;
+                this.largura = largura;
+                this.altura = altura;
+                this.cor = cor;
+            }
 
-    desenhar(ctx) {
-        ctx.fillStyle = this.cor;
-        ctx.fillRect(this.x, this.y, this.largura, this.altura);
-    }
-}
-
-class Raquete extends ObjetoDoJogo {
-    constructor(x, y, largura, altura, cor) {
-        super(x, y, largura, altura, cor);
-        this.velocidade = 5;
-    }
-
-    mover(direita, esquerda, larguraCanvas) {
-        if (direita && this.x < larguraCanvas - this.largura) {
-            this.x += this.velocidade;
-        }
-        if (esquerda && this.x > 0) {
-            this.x -= this.velocidade;
-        }
-    }
-}
-
-class Bola {
-    constructor(x, y, raio, dx, dy, cor) {
-        this.x = x;
-        this.y = y;
-        this.raio = raio;
-        this.dx = dx;
-        this.dy = dy;
-        this.cor = cor;
-    }
-
-    desenhar(ctx) {
-        ctx.fillStyle = this.cor;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    mover(larguraCanvas, alturaCanvas, raquete) {
-        this.x += this.dx;
-        this.y += this.dy;
-        
-        if (this.x < 0 || this.x > larguraCanvas) this.dx *= -1;
-        if (this.y < 0) this.dy *= -1;
-        
-        if (
-            this.y > alturaCanvas - raquete.altura - this.raio &&
-            this.x > raquete.x &&
-            this.x < raquete.x + raquete.largura
-        ) {
-            this.dy *= -1;
+            desenhar(ctx) {
+                ctx.fillStyle = this.cor;
+                ctx.fillRect(this.x, this.y, this.largura, this.altura);
+            }
         }
 
-        if (this.y > alturaCanvas) {
-            this.x = larguraCanvas / 2;
-            this.y = alturaCanvas / 2;
-            this.dx = 3;
-            this.dy = -3;
+        class Raquete extends ObjetoDoJogo {
+            constructor(x, y, largura, altura, cor) {
+                super(x, y, largura, altura, cor);
+                this.velocidade = 5;
+            }
+
+            mover(direita, esquerda, larguraCanvas) {
+                if (direita && this.x < larguraCanvas - this.largura) {
+                    this.x += this.velocidade;
+                }
+                if (esquerda && this.x > 0) {
+                    this.x -= this.velocidade;
+                }
+            }
         }
-    }
-}
 
-const canvas = document.getElementById("jogoCanvas");
-const ctx = canvas.getContext("2d");
+        class Bola {
+            constructor(x, y, raio, dx, dy, cor) {
+                this.x = x;
+                this.y = y;
+                this.raio = raio;
+                this.dx = dx;
+                this.dy = dy;
+                this.cor = cor;
+            }
 
-const raquete = new Raquete((canvas.width - 80) / 2, canvas.height - 10, 80, 10, "blue");
-const bola = new Bola(canvas.width / 2, canvas.height / 2, 8, 3, -3, "red");
+            desenhar(ctx) {
+                ctx.fillStyle = this.cor;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
+                ctx.fill();
+            }
 
-let direita = false, esquerda = false;
+            mover(larguraCanvas, alturaCanvas, raquete, blocos) {
+                this.x += this.dx;
+                this.y += this.dy;
 
-document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") direita = true;
-    if (e.key === "ArrowLeft") esquerda = true;
-});
+                if (this.x < 0 || this.x > larguraCanvas) this.dx *= -1;
+                if (this.y < 0) this.dy *= -1;
 
-document.addEventListener("keyup", () => {
-    direita = false;
-    esquerda = false;
-});
+                if (
+                    this.y > alturaCanvas - raquete.altura - this.raio &&
+                    this.x > raquete.x &&
+                    this.x < raquete.x + raquete.largura
+                ) {
+                    this.dy *= -1;
+                }
 
-function update() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    raquete.mover(direita, esquerda, canvas.width);
-    bola.mover(canvas.width, canvas.height, raquete);
-    
-    raquete.desenhar(ctx);
-    bola.desenhar(ctx);
-    
-    requestAnimationFrame(update);
-}
+                if (this.y > alturaCanvas) {
+                    this.x = larguraCanvas / 2;
+                    this.y = alturaCanvas / 2;
+                    this.dx = 3;
+                    this.dy = -3;
+                }
 
-update();
+                // Verificando colisões com blocos
+                for (let i = 0; i < blocos.length; i++) {
+                    const bloco = blocos[i];
+                    if (
+                        this.x > bloco.x &&
+                        this.x < bloco.x + bloco.largura &&
+                        this.y - this.raio < bloco.y + bloco.altura &&
+                        this.y + this.raio > bloco.y
+                    ) {
+                        this.dy *= -1;
+                        blocos.splice(i, 1); // Remove o bloco
+                        return true; // bloco destruido pela bola
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        const canvas = document.getElementById("jogoCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const raquete = new Raquete((canvas.width - 80) / 2, canvas.height - 10, 80, 10, "blue");
+        const bola = new Bola(canvas.width / 2, canvas.height / 2, 8, 3, -3, "red");
+
+        let direita = false, esquerda = false;
+        let pontuacao = 0;
+
+        // Blocos
+        const blocos = [];
+        const linhaDeBlocos = 5;
+        const colunaDeBlocos = 6;
+        const blocoLargura = 60;
+        const blocoAltura = 15;
+
+        for (let i = 0; i < linhaDeBlocos; i++) {
+            for (let j = 0; j < colunaDeBlocos; j++) {
+                blocos.push(new ObjetoDoJogo(j * (blocoLargura + 10) + 20, i * (blocoAltura + 5) + 20, blocoLargura, blocoAltura, "green"));
+            }
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight") direita = true;
+            if (e.key === "ArrowLeft") esquerda = true;
+        });
+
+        document.addEventListener("keyup", () => {
+            direita = false;
+            esquerda = false;
+        });
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            raquete.mover(direita, esquerda, canvas.width);
+            if (bola.mover(canvas.width, canvas.height, raquete, blocos)) {
+                pontuacao += 1; // Aumenta a pontuação
+                document.getElementById("pontuacao").textContent = pontuacao;
+            }
+
+            raquete.desenhar(ctx);
+            bola.desenhar(ctx);
+
+            // Desenha os blocos restantes
+            blocos.forEach((bloco) => bloco.desenhar(ctx));
+
+            // Vitoria quando todos os blocos forem destruidos
+            if (blocos.length === 0) {
+                ctx.fillStyle = "white";
+                ctx.font = "20px Arial";
+                ctx.fillText("Você ganhou!", canvas.width / 2 - 60, canvas.height / 2);
+                return;
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        update();
     </script>
 </body>
 </html>
