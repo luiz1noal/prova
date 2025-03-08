@@ -15,65 +15,109 @@
 <body>
     <canvas id="jogoCanvas" width="480" height="320"></canvas>
     <script>
-        const canvas = document.getElementById("jogoCanvas");
-        const ctx = canvas.getContext("2d");
+        class ObjetoDoJogo {
+    constructor(x, y, largura, altura, cor) {
+        this.x = x;
+        this.y = y;
+        this.largura = largura;
+        this.altura = altura;
+        this.cor = cor;
+    }
 
-        let raqueteX = (canvas.width - 80) / 2;
-        let bolaX = canvas.width / 2;
-        let bolaY = canvas.height / 2;
-        let bolaDX = 3, bolaDY = -3;
-        let direita = false, esquerda = false;
+    desenhar(ctx) {
+        ctx.fillStyle = this.cor;
+        ctx.fillRect(this.x, this.y, this.largura, this.altura);
+    }
+}
 
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "ArrowRight") direita = true;
-            if (e.key === "ArrowLeft") esquerda = true;
-        });
+class Raquete extends ObjetoDoJogo {
+    constructor(x, y, largura, altura, cor) {
+        super(x, y, largura, altura, cor);
+        this.velocidade = 5;
+    }
+
+    mover(direita, esquerda, larguraCanvas) {
+        if (direita && this.x < larguraCanvas - this.largura) {
+            this.x += this.velocidade;
+        }
+        if (esquerda && this.x > 0) {
+            this.x -= this.velocidade;
+        }
+    }
+}
+
+class Bola {
+    constructor(x, y, raio, dx, dy, cor) {
+        this.x = x;
+        this.y = y;
+        this.raio = raio;
+        this.dx = dx;
+        this.dy = dy;
+        this.cor = cor;
+    }
+
+    desenhar(ctx) {
+        ctx.fillStyle = this.cor;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.raio, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    mover(larguraCanvas, alturaCanvas, raquete) {
+        this.x += this.dx;
+        this.y += this.dy;
         
-        document.addEventListener("keyup", () => {
-            direita = false;
-            esquerda = false;
-        });
-
-        function update() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Movimenta a raquete
-            if (direita && raqueteX < canvas.width - 80) raqueteX += 5;
-            if (esquerda && raqueteX > 0) raqueteX -= 5;
-            
-            // Movimenta a bola
-            bolaX += bolaDX;
-            bolaY += bolaDY;
-            
-            // Colisão com as paredes
-            if (bolaX < 0 || bolaX > canvas.width) bolaDX *= -1;
-            if (bolaY < 0) bolaDY *= -1;
-            
-            // Colisão com a raquete
-            if (bolaY > canvas.height - 20 && bolaX > raqueteX && bolaX < raqueteX + 80) bolaDY *= -1;
-            
-            // Reseta o jogo
-            if (bolaY > canvas.height) {
-                bolaX = canvas.width / 2;
-                bolaY = canvas.height / 2;
-                bolaDX = 3;
-                bolaDY = -3;
-            }
-            
-            // Desenha a raquete
-            ctx.fillStyle = "blue";
-            ctx.fillRect(raqueteX, canvas.height - 10, 80, 10);
-            
-            // Desenha a bola
-            ctx.fillStyle = "red";
-            ctx.beginPath();
-            ctx.arc(bolaX, bolaY, 8, 0, Math.PI * 2);
-            ctx.fill();
-            
-            requestAnimationFrame(update);
+        if (this.x < 0 || this.x > larguraCanvas) this.dx *= -1;
+        if (this.y < 0) this.dy *= -1;
+        
+        if (
+            this.y > alturaCanvas - raquete.altura - this.raio &&
+            this.x > raquete.x &&
+            this.x < raquete.x + raquete.largura
+        ) {
+            this.dy *= -1;
         }
 
-        update();
+        if (this.y > alturaCanvas) {
+            this.x = larguraCanvas / 2;
+            this.y = alturaCanvas / 2;
+            this.dx = 3;
+            this.dy = -3;
+        }
+    }
+}
+
+const canvas = document.getElementById("jogoCanvas");
+const ctx = canvas.getContext("2d");
+
+const raquete = new Raquete((canvas.width - 80) / 2, canvas.height - 10, 80, 10, "blue");
+const bola = new Bola(canvas.width / 2, canvas.height / 2, 8, 3, -3, "red");
+
+let direita = false, esquerda = false;
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") direita = true;
+    if (e.key === "ArrowLeft") esquerda = true;
+});
+
+document.addEventListener("keyup", () => {
+    direita = false;
+    esquerda = false;
+});
+
+function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    raquete.mover(direita, esquerda, canvas.width);
+    bola.mover(canvas.width, canvas.height, raquete);
+    
+    raquete.desenhar(ctx);
+    bola.desenhar(ctx);
+    
+    requestAnimationFrame(update);
+}
+
+update();
     </script>
 </body>
 </html>
